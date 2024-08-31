@@ -1,70 +1,126 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  Image,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+  useWindowDimensions,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+type Product = {
+  id: string;
+  name: string;
+  image: string;
+};
 
-export default function HomeScreen() {
+const products: Product[] = [
+  { id: '1', name: 'Sản phẩm 1', image: 'https://placekitten.com/200/200' },
+  { id: '2', name: 'Sản phẩm 2', image: 'https://placekitten.com/201/201' },
+  { id: '3', name: 'Sản phẩm 3', image: 'https://placekitten.com/202/202' },
+  { id: '4', name: 'Sản phẩm 4', image: 'https://placekitten.com/203/203' },
+  { id: '5', name: 'Sản phẩm 5', image: 'https://placekitten.com/204/204' },
+];
+
+export default function App() {
+  const [numColumns, setNumColumns] = useState(2);
+  const [searchText, setSearchText] = useState('');
+  const { width, height } = useWindowDimensions();
+
+  useEffect(() => {
+    const isLandscape = width > height;
+    setNumColumns(isLandscape ? 3 : 2);
+  }, [width, height]);
+
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <View style={styles.item}>
+      <Image 
+        source={{ uri: item.image }} 
+        style={[styles.image, { width: width / numColumns - 30, height: width / numColumns - 30 }]} 
+      />
+      <Text style={styles.itemText}>{item.name}</Text>
+    </View>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <StatusBar 
+        backgroundColor="#f4511e"
+        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'light-content'}
+      />
+      <Text style={styles.header}>Danh sách sản phẩm</Text>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Tìm kiếm sản phẩm..."
+        value={searchText}
+        onChangeText={setSearchText}
+      />
+      <FlatList
+        data={filteredProducts}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        numColumns={numColumns}
+      />
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>Nút ví dụ</Text>
+      </TouchableOpacity>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    padding: 20,
+    backgroundColor: '#f4511e',
+    color: Platform.OS === 'ios' ? '#000' : '#fff',
+  },
+  searchInput: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+  },
+  item: {
+    flex: 1,
+    margin: 10,
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  image: {
+    borderRadius: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  itemText: {
+    marginTop: 5,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#f4511e',
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
